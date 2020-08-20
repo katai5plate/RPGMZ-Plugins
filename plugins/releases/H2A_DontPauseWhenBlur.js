@@ -13,7 +13,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.1
+ * プラグインバージョン: v1.2
  *
  * @param whenDebug
  * @text デバッグ時限定
@@ -29,9 +29,7 @@
   if (
     params.whenDebug === "false" ||
     (params.whenDebug === "true" &&
-      ["test", "btest", "etest"]
-        .map((x) => Utils.isOptionValid(x))
-        .some(Boolean))
+      ["test", "btest", "etest"].some((x) => Utils.isOptionValid(x)))
   )
     SceneManager.isGameActive = () => true;
 })();
