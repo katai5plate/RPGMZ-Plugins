@@ -11,7 +11,7 @@
  * フォーカスしていない時でもゲームを一時停止しないようにします。
  *
  * Copyright (c) 2020 Had2Apps
- * This software is released under the MIT License.
+ * This plugin is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
  * プラグインバージョン: v1.3
