@@ -2,6 +2,7 @@
  * @target MZ
  * @plugindesc フォーカスしてない時にゲームが一時停止しないようにする
  * @author Had2Apps
+ * @url https://github.com/katai5plate/RPGMZ-Plugins
  * @help
  * ツクール MZ から、ゲームをフォーカスしていない時に
  * ゲームが一時停止する仕様になりました。
@@ -13,7 +14,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.2
+ * プラグインバージョン: v1.3
  *
  * @param whenDebug
  * @text デバッグ時限定
