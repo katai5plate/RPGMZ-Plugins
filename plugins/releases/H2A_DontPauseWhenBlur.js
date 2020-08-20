@@ -12,7 +12,8 @@
  * Copyright (c) 2020 Had2Apps
  * This software is released under the MIT License.
  *
- * 動作確認済: v1.0.0
+ * 動作確認済コアバージョン: v1.0.0
+ * プラグインバージョン: v1.1
  *
  * @param whenDebug
  * @text デバッグ時限定
@@ -30,7 +31,7 @@
     (params.whenDebug === "true" &&
       ["test", "btest", "etest"]
         .map((x) => Utils.isOptionValid(x))
-        .includes(true))
+        .some(Boolean))
   )
     SceneManager.isGameActive = () => true;
 })();
