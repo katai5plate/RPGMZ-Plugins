@@ -14,7 +14,7 @@
  * This plugin is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.3
+ * プラグインバージョン: v1.5
  *
  * @param whenDebug
  * @text デバッグ時限定
@@ -24,8 +24,9 @@
  */
 
 (() => {
-  const PLUGIN_NAME = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
-  const params = PluginManager.parameters(PLUGIN_NAME);
+  const params = PluginManager.parameters(
+    document.currentScript.src.match(/^.*\/(.*).js$/)[1]
+  );
 
   if (
     params.whenDebug === "false" ||
