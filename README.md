@@ -6,7 +6,7 @@ RPG ツクール MZ のプラグイン置き場
 
 以下のリンクからどうぞ：
 
-https://github.com/katai5plate/RPGMZ-Plugins/blob/master/plugins/
+https://github.com/katai5plate/RPGMZ-Plugins/tree/master/plugins
 
 ## ライセンス
 
