@@ -1,0 +1,20 @@
+{
+  "name": "had2apps-rpgmz-plugins",
+  "version": "1.0.0",
+  "description": "RPGツクールMZのプラグイン置き場",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/katai5plate/RPGMZ-Plugins.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/katai5plate/RPGMZ-Plugins/issues"
+  },
+  "homepage": "https://github.com/katai5plate/RPGMZ-Plugins#readme"
+}
