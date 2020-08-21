@@ -11,7 +11,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.3
+ * プラグインバージョン: v1.2.1
  *
  * @param timeout
  * @text タイムアウト
@@ -31,7 +31,7 @@
 (() => {
   class ErrorWhenSlowNet {
     constructor(params) {
-      this._wasError = false;
+      this._isError = false;
       this._timeout = Number(params.timeout);
       this._message = String(params.message);
       // プラグインは Main.prototype.run() 後に呼び出される
@@ -41,12 +41,12 @@
       setTimeout(this.onTimeover.bind(this), this._timeout);
     }
     onTimeover() {
-      if (this._wasError) return;
+      if (this._isError) return;
       if (document.getElementById("loadingSpinner"))
         return this.throwNetworkError();
     }
     throwNetworkError() {
-      this._wasError = true;
+      this._isError = true;
       // エラー表示
       Graphics.printError("Network Speed Error", "");
       Graphics._errorPrinter.querySelector(
@@ -67,7 +67,7 @@
 
   /** 関数を実行する直前にエラーが発生していたなら実行しない */
   const preApply = (target, that, args) => {
-    if (errorWhenSlowNet._wasError) return;
+    if (errorWhenSlowNet._isError) return;
     return target.apply(that, args);
   };
 
