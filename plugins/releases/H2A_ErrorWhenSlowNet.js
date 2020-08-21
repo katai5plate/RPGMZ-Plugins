@@ -11,20 +11,21 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.0
+ * プラグインバージョン: v1.1
  *
  * @param timeout
  * @text タイムアウト
- * @desc 許容する読み込み時間(秒)
+ * @desc 許容する読み込み時間(1秒=1000)
  * @type number
- * @default 3
+ * @default 3000
  *
  * @param message
  * @text エラー時
  * @desc タイムアウト時間を過ぎたときに表示するエラーメッセージ
  * @type multiline_string
- * @default インターネット通信が遅すぎます。
- * より高速なインターネット環境でお試しください。
+ * @default 快適にプレイしていただくのに必要な
+ * 通信速度を下回っています。
+ * より高速なインターネット環境でお楽しみください。
  */
 
 (() => {
@@ -37,7 +38,7 @@
       this.setWatch();
     }
     setWatch() {
-      setTimeout(this.onTimeup.bind(this), Number(timeout) * 1000);
+      setTimeout(this.onTimeup.bind(this), this._timeout);
     }
     onTimeup() {
       if (this._wasError) return;
@@ -46,10 +47,17 @@
     }
     throwNetworkError() {
       this._wasError = true;
+      // エラー表示
       Graphics.printError("Network Speed Error", "");
-      Graphics._errorPrinter.querySelector("#errorMessage").innerText = message;
+      Graphics._errorPrinter.querySelector(
+        "#errorMessage"
+      ).innerText = this._message;
+      // シーンの停止
       SceneManager.stop();
       AudioManager.stopAll();
+      // スピナーの削除
+      const spinner = document.getElementById("loadingSpinner");
+      if (spinner) spinner.remove();
     }
   }
   const { timeout, message } = PluginManager.parameters(
