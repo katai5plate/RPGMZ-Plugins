@@ -20,7 +20,7 @@
  * @default 3
  *
  * @param message
- * @text エラー
+ * @text エラー時
  * @desc タイムアウト時間を過ぎたときに表示するエラーメッセージ
  * @type multiline_string
  * @default インターネット通信が遅すぎます。
