@@ -11,23 +11,29 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.0.0
+ * プラグインバージョン: v1.1.0
  *
  * @param mode
  * @text モード
  * @desc タイトルスキップ時の挙動
  * @type select
- * @option セーブ無:ニューゲーム,有:直前のセーブ
+ * @option オートセーブ含む直前のセーブ ＞ ニューゲーム
  * @value newlast
- * @option セーブ無:ニューゲーム,有:オートセーブ
+ * @option 直前の手動セーブ ＞ オートセーブ ＞ ニューゲーム
+ * @value newmanual
+ * @option オートセーブ ＞ 直前の手動セーブ ＞ ニューゲーム
  * @value newauto
+ * @option オートセーブ ＞ ニューゲーム
+ * @value newautoonly
  * @option ニューゲーム
  * @value new
  * @option 直前のセーブ
  * @value last
+ * @option 直前の手動セーブ
+ * @value manual
  * @option オートセーブ
  * @value auto
- * @default newlast
+ * @default newmanual
  */
 
 (() => {
@@ -39,34 +45,64 @@
       SceneManager.goto(Scene_Map);
       isContinue && $gameSystem.onAfterLoad();
     };
-    const saveIsExist = () => DataManager.isAnySavefileExists();
-    const autoSaveIsExist = () => DataManager.savefileExists(0);
+    const noSave = () => !DataManager.isAnySavefileExists();
+    const noAutoSave = () => !DataManager.savefileExists(0);
+    const noManualSave = () =>
+      DataManager._globalInfo.slice(1).filter(Boolean).length === 0;
+    const latestSavefileId = (manualPriority) => {
+      if (manualPriority) return DataManager.latestSavefileId();
+      const { _globalInfo } = DataManager;
+      return _globalInfo.findIndex(
+        (x) =>
+          x &&
+          x.timestamp ===
+            Math.max(..._globalInfo.filter(Boolean).map((x) => x.timestamp))
+      );
+    };
     const toNewGame = () => {
       DataManager.setupNewGame();
       moveToSceneMap();
     };
-    const toLastSave = () => {
-      DataManager.loadGame(DataManager.latestSavefileId()).then(() =>
+    const toManualSave = () => {
+      DataManager.loadGame(latestSavefileId(true)).then(() =>
         moveToSceneMap(true)
       );
     };
     const toAutoSave = () => {
       DataManager.loadGame(0).then(() => moveToSceneMap(true));
     };
+    const toLastSave = () => {
+      DataManager.loadGame(latestSavefileId()).then(() => moveToSceneMap(true));
+    };
     switch (mode) {
       case "newlast":
-        if (saveIsExist()) return toLastSave();
-        return toNewGame();
+        if (noSave()) return toNewGame();
+        return toLastSave();
+      case "newmanual":
+        if (noManualSave()) {
+          if (noAutoSave()) return toNewGame();
+          return toAutoSave();
+        }
+        return toManualSave();
       case "newauto":
-        if (autoSaveIsExist()) return toAutoSave();
-        return toNewGame();
+        if (noAutoSave()) {
+          if (noManualSave()) return toNewGame();
+          return toManualSave();
+        }
+        return toAutoSave();
+      case "newautoonly":
+        if (noAutoSave()) return toNewGame();
+        return toAutoSave();
       case "new":
         return toNewGame();
       case "last":
-        if (saveIsExist()) throw new Error("セーブデータが見つかりません");
+        if (noSave()) throw new Error("セーブデータが見つかりません");
         return toLastSave();
+      case "manual":
+        if (noManualSave()) throw new Error("手動セーブデータが見つかりません");
+        return toManualSave();
       case "auto":
-        if (autoSaveIsExist()) throw new Error("オートセーブが見つかりません");
+        if (noAutoSave()) throw new Error("オートセーブが見つかりません");
         return toAutoSave();
       default:
         throw new Error("無効な設定");
