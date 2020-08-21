@@ -15,7 +15,7 @@
  *
  * @param timeout
  * @text タイムアウト
- * @desc 許容するローディング時間(秒)
+ * @desc 許容する読み込み時間(秒)
  * @type number
  * @default 3
  *
