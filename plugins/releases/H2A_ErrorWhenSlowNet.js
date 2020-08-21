@@ -11,7 +11,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.1
+ * プラグインバージョン: v1.2
  *
  * @param timeout
  * @text タイムアウト
@@ -65,27 +65,24 @@
   );
   const errorWhenSlowNet = new ErrorWhenSlowNet({ timeout, message });
 
+  /** 関数を実行する直前にエラーが発生していたなら実行しない */
+  const preApply = (target, that, args) => {
+    if (errorWhenSlowNet._wasError) return;
+    return target.apply(that, args);
+  };
+
   // ロード後にゲームが開始しないようにする
   Graphics._createPixiApp = new Proxy(Graphics._createPixiApp, {
-    apply(target, that, args) {
-      if (errorWhenSlowNet._wasError) return;
-      return target.apply(that, args);
-    },
+    apply: preApply,
   });
 
-  // エラーが重複して表示しないようにする
+  // エラーが重複して表示されないようにする
   SceneManager.initGraphics = new Proxy(SceneManager.initGraphics, {
-    apply(target, that, args) {
-      if (errorWhenSlowNet._wasError) return;
-      return target.apply(that, args);
-    },
+    apply: preApply,
   });
 
   // 回線エラー表示中に通常のスピナー消去を行わないようにする
   Graphics.endLoading = new Proxy(Graphics.endLoading, {
-    apply(target, that, args) {
-      if (errorWhenSlowNet._wasError) return;
-      return target.apply(that, args);
-    },
+    apply: preApply,
   });
 })();
