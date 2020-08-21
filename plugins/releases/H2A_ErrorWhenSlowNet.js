@@ -11,7 +11,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.2
+ * プラグインバージョン: v1.3
  *
  * @param timeout
  * @text タイムアウト
@@ -38,9 +38,9 @@
       this.setWatch();
     }
     setWatch() {
-      setTimeout(this.onTimeup.bind(this), this._timeout);
+      setTimeout(this.onTimeover.bind(this), this._timeout);
     }
-    onTimeup() {
+    onTimeover() {
       if (this._wasError) return;
       if (document.getElementById("loadingSpinner"))
         return this.throwNetworkError();
