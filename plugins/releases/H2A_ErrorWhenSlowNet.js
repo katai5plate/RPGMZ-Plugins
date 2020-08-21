@@ -6,12 +6,24 @@
  * @help
  * 最初の読み込み時間が指定の時間を越えると、
  * エラーメッセージを表示してゲームを中断します。
+ * プラグインコマンドから、
+ * 最初の読み込みにかかった時間を取得することもできます。
+ *
+ * 注意:
+ * ブラウザにゲームデータのキャッシュが残っている状態で、
+ * ゲームを起動すると、回線の速さに関係なくロード時間が短縮します。
+ * そのため、リロードするとエラーが表示されなくなることがあります。
+ *
+ * 参考:
+ * 基本的に 1 秒程度でタイトルまで読み込む事ができれば、
+ * 特に大きな問題なく快適にプレイすることができるはずです。
+ * 光ファイバー等の高速回線であれば 500 ミリ秒も可能だと思います。
  *
  * Copyright (c) 2020 Had2Apps
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.3.0
+ * プラグインバージョン: v2.0.0
  *
  * @param timeout
  * @text タイムアウト
@@ -26,27 +38,66 @@
  * @default 快適にプレイしていただくのに必要な
  * 通信速度を下回っています。
  * より高速なインターネット環境でお楽しみください。
+ *
+ * @command getInitLoadTime
+ * @text 初回ロード時間を変数に代入
+ * @desc ゲーム開始からタイトル画面までにかかった時間を変数に代入します。代入値は 1秒=1000 です。
+ *
+ * @arg id
+ * @type variable
+ * @text 代入する変数
  */
 
 (() => {
+  const __DEBUG = false;
+
+  /**
+   * ロード開始 -> PIXI 起動 -> タイトル で初めて成功扱い。
+   * その間にエラーがあれば失敗。
+   * this._timeout がタイトル表示までの時間を上回っていた場合、
+   * タイトル遷移時に有効化した成功フラグが立ってなければ失敗扱い
+   */
   class ErrorWhenSlowNet {
     constructor(params) {
-      this._isError = false;
+      /** タイムアウトを迎えたか */
+      this._isFailed = false;
+      /** タイムアウトする前にタイトルに遷移したか */
+      this._isSuccess = false;
       this._timeout = Number(params.timeout);
       this._message = String(params.message);
+      this._startDate = null;
+      this._initLoadTime = null;
       // プラグインは Main.prototype.run() 後に呼び出される
       this.setWatch();
     }
+    /** タイムアウトをセットする */
     setWatch() {
+      __DEBUG && console.time("timeout");
+      __DEBUG && console.time("init");
+      this._startDate = new Date().valueOf();
       setTimeout(this.onTimeover.bind(this), this._timeout);
     }
+    /** タイムアウトしたとき */
     onTimeover() {
-      if (this._isError) return;
-      if (document.getElementById("loadingSpinner"))
-        return this.throwNetworkError();
+      __DEBUG && console.log("onTimeover");
+      __DEBUG && console.timeEnd("timeout");
+      // すでにタイトルに遷移していたら成功
+      if (this._isSuccess) return;
+      // いずれも該当しなければ失敗
+      this.onFailed();
     }
-    throwNetworkError() {
-      this._isError = true;
+    /** タイトルに遷移したとき */
+    onTitle() {
+      __DEBUG && console.timeEnd("init");
+      this._isSuccess = true;
+      this._initLoadTime = new Date().valueOf() - this._startDate;
+    }
+    getInitLoadTime() {
+      return this._initLoadTime;
+    }
+    /** タイムアウトを迎えたとき */
+    onFailed() {
+      this._isFailed = true;
       // エラー表示
       Graphics.printError("Network Speed Error", "");
       Graphics._errorPrinter.querySelector(
@@ -60,28 +111,40 @@
       if (spinner) spinner.remove();
     }
   }
-  const { timeout, message } = PluginManager.parameters(
-    document.currentScript.src.match(/^.*\/(.*).js$/)[1]
-  );
-  const errorWhenSlowNet = new ErrorWhenSlowNet({ timeout, message });
 
-  /** 関数を実行する直前にエラーが発生していたなら実行しない */
+  // プラグイン設定
+  const pluginName = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
+  const { timeout, message } = PluginManager.parameters(pluginName);
+  const errorWhenSlowNet = new ErrorWhenSlowNet({ timeout, message });
+  PluginManager.registerCommand(pluginName, "getInitLoadTime", ({ id }) => {
+    if (id) $gameVariables.setValue(Number(id), errorWhenSlowNet._initLoadTime);
+  });
+
+  // タイトル画面に遷移したとき
+  Scene_Boot.prototype.start = new Proxy(Scene_Boot.prototype.start, {
+    apply(target, that, args) {
+      errorWhenSlowNet.onTitle();
+      return target.apply(that, args);
+    },
+  });
+
+  /** 関数を実行する直前に回線エラーが発生していたなら実行しない */
   const preApply = (target, that, args) => {
-    if (errorWhenSlowNet._isError) return;
+    if (errorWhenSlowNet._isFailed) return;
     return target.apply(that, args);
   };
 
-  // ロード後にゲームが開始しないようにする
+  // PIXI を開始するまでに回線エラーがあったらゲームを開始しない
   Graphics._createPixiApp = new Proxy(Graphics._createPixiApp, {
     apply: preApply,
   });
 
-  // エラーが重複して表示されないようにする
+  // 回線エラーがあったら重複して表示されないようにする
   SceneManager.initGraphics = new Proxy(SceneManager.initGraphics, {
     apply: preApply,
   });
 
-  // 回線エラー表示中に通常のスピナー消去を行わないようにする
+  // 回線エラーがあったら通常のスピナー消去を行わないようにする
   Graphics.endLoading = new Proxy(Graphics.endLoading, {
     apply: preApply,
   });
