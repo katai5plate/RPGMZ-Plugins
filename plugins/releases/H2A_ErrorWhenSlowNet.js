@@ -11,13 +11,13 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.2.1
+ * プラグインバージョン: v1.3.0
  *
  * @param timeout
  * @text タイムアウト
  * @desc 許容する読み込み時間(1秒=1000)
  * @type number
- * @default 3000
+ * @default 5000
  *
  * @param message
  * @text エラー時
