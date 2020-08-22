@@ -19,7 +19,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.0.0
+ * プラグインバージョン: v1.1.0
  *
  * @param autosaveMode
  * @text オートセーブ設定
@@ -33,6 +33,12 @@
  * @value disable
  * @default all
  *
+ * @param disableAutoSaveFlag
+ * @text オートセーブ禁止スイッチ
+ * @desc ON にしている間、オートセーブを禁止するスイッチを設定します。この設定はオートセーブ設定よりも優先されます。
+ * @type switch
+ * @default 0
+ *
  * @command autosave
  * @text オートセーブ
  * @desc オートセーブを行います。
@@ -40,7 +46,9 @@
  */
 (() => {
   const pluginName = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
-  const { autosaveMode } = PluginManager.parameters(pluginName);
+  const { autosaveMode, disableAutoSaveFlag } = PluginManager.parameters(
+    pluginName
+  );
 
   let prevMapId = 0;
 
@@ -101,4 +109,16 @@
       }
     }
   };
+
+  Scene_Base.prototype.requestAutosave = new Proxy(
+    Scene_Base.prototype.requestAutosave,
+    {
+      apply(target, that, args) {
+        const switchId = Number(disableAutoSaveFlag);
+        if (!switchId || !$gameSwitches.value(switchId)) {
+          return target.apply(that, args);
+        }
+      },
+    }
+  );
 })();
