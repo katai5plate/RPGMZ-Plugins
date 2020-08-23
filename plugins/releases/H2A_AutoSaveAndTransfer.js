@@ -15,13 +15,19 @@
  * またプラグインコマンドを使用することで、
  * オートセーブを呼び出すことができます。
  *
+ * 注意:
+ * 設定の優先度は以下のようになっています。
+ * コモンイベントのオートセーブ ＞ 禁止スイッチ ＞ オートセーブ設定
+ * 禁止スイッチが ON の状態でもコモンイベントからオートセーブが可能で、
+ * 禁止スイッチが ON だとオートセーブ設定が all でもセーブされません。
+ *
  * Copyright (c) 2020 Had2Apps
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.1.0
+ * プラグインバージョン: v2.0.0
  *
- * @param autosaveMode
+ * @param autoSaveMode
  * @text オートセーブ設定
  * @desc 場所移動時のオートセーブの挙動を設定します。
  * @type select
@@ -33,9 +39,15 @@
  * @value disable
  * @default all
  *
+ * @param enableAutoSaveAfterBattle
+ * @text 戦闘終了後のオートセーブ
+ * @desc 戦闘終了後のオートセーブを許可するかどうかを設定します。
+ * @type boolean
+ * @default true
+ *
  * @param disableAutoSaveFlag
  * @text オートセーブ禁止スイッチ
- * @desc ON にしている間、オートセーブを禁止するスイッチを設定します。この設定はオートセーブ設定よりも優先されます。
+ * @desc ON にしている間、オートセーブを禁止するスイッチを設定します。
  * @type switch
  * @default 0
  *
@@ -46,9 +58,11 @@
  */
 (() => {
   const pluginName = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
-  const { autosaveMode, disableAutoSaveFlag } = PluginManager.parameters(
-    pluginName
-  );
+  const {
+    autoSaveMode,
+    enableAutoSaveAfterBattle,
+    disableAutoSaveFlag,
+  } = PluginManager.parameters(pluginName);
 
   let prevMapId = 0;
 
@@ -77,10 +91,7 @@
     SceneManager.clearStack();
     if (this._transfer) {
       this.fadeInForTransfer();
-      // 同一マップ内での移動ではない場合
-      if ($gameMap.mapId() !== prevMapId) {
-        this.onTransferEnd();
-      }
+      this.onTransferEnd();
     } else if (this.needsFadeIn()) {
       this.startFadeIn(this.fadeSpeed(), false);
     }
@@ -96,29 +107,50 @@
     }
     // オートセーブ
     if (this.shouldAutosave()) {
-      switch (autosaveMode) {
-        case "all":
-          return this.requestAutosave();
-        case "nosame":
-          if (isDifferent) return this.requestAutosave();
-          return;
-        case "disable":
-          return;
-        default:
-          throw new Error("無効なパラメーター");
-      }
+      this.requestAutosave();
     }
   };
 
-  Scene_Base.prototype.requestAutosave = new Proxy(
-    Scene_Base.prototype.requestAutosave,
-    {
-      apply(target, that, args) {
-        const switchId = Number(disableAutoSaveFlag);
-        if (!switchId || !$gameSwitches.value(switchId)) {
-          return target.apply(that, args);
+  const shouldAutosave = (defaultFlag, mode) => {
+    const switchId = Number(disableAutoSaveFlag);
+    const flagIsOff = !switchId || !$gameSwitches.value(switchId);
+    // デフォルトのオートセーブ判定に加え、無効スイッチがオフ
+    if (defaultFlag && flagIsOff) {
+      // 場所移動の場合
+      if (mode === "transfer") {
+        const isSame = $gameMap.mapId() === prevMapId;
+        switch (autoSaveMode) {
+          case "all":
+            return true;
+          case "nosame":
+            return !isSame;
+          case "disable":
+            return false;
+          default:
+            throw new Error("無効なパラメーター: autoSaveMode");
         }
-      },
+      }
+      // 戦闘終了後の場合
+      if (mode === "battle") {
+        return enableAutoSaveAfterBattle === "true";
+      }
+      // どれにも当てはまらないモードの場合
+      throw new Error("無効なモード");
     }
+    return false;
+  };
+
+  const proxyShouldAutosave = (origin, mode) =>
+    new Proxy(origin, {
+      apply: (target, that, args) =>
+        shouldAutosave(target.apply(that, args), mode),
+    });
+  Scene_Map.prototype.shouldAutosave = proxyShouldAutosave(
+    Scene_Map.prototype.shouldAutosave,
+    "transfer"
+  );
+  Scene_Battle.prototype.shouldAutosave = proxyShouldAutosave(
+    Scene_Battle.prototype.shouldAutosave,
+    "battle"
   );
 })();
