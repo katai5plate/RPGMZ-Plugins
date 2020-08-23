@@ -11,7 +11,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.1.0
+ * プラグインバージョン: v1.2.0
  *
  * @param mode
  * @text モード
@@ -41,6 +41,9 @@
   const { mode } = PluginManager.parameters(pluginName);
 
   const skipTitle = (mode) => {
+    // 戦闘・イベントテスト時は無効
+    if(["btest", "etest"].some((x) => Utils.isOptionValid(x))) return;
+
     const moveToSceneMap = (isContinue = false) => {
       SceneManager.goto(Scene_Map);
       isContinue && $gameSystem.onAfterLoad();
