@@ -46,7 +46,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.2.1
+ * プラグインバージョン: v1.2.2
  *
  * @param mode
  * @text モード
@@ -68,7 +68,7 @@
  * @value manual
  * @option オートセーブ
  * @value auto
- * @default newmanual
+ * @default new
  */
 
 (() => {
