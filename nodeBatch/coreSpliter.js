@@ -7,9 +7,11 @@
 // 4. index.html の js/main.js を js/src/main.js に変更
 
 const fs = require("fs");
-const delimit =
+
+const DELIMIT =
   "//-----------------------------------------------------------------------------";
 const UTF8 = { encoding: "utf8" };
+
 const mkdirp = (path) => fs.existsSync(path) || fs.mkdirSync(path);
 
 const list = [
@@ -23,7 +25,7 @@ const list = [
   coreName,
   files: fs
     .readFileSync(`./js/rmmz_${coreName}.js`, UTF8)
-    .split(delimit)
+    .split(DELIMIT)
     .map((code) => ({
       code,
       className:
