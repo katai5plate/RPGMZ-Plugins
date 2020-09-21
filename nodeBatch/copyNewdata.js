@@ -31,8 +31,10 @@ const NEWDATA_FILES = [
 const isNewdataMember = (list) =>
   list.every((d) => NEWDATA_FILES.find((f) => f === d));
 
-const isNewdata = (path) =>
-  fs.existsSync(path) && isNewdataMember(fs.readdirSync(path));
+const isNewdata = (path) => {
+  const list = fs.readdirSync(path);
+  return fs.existsSync(path) && list.length !== 0 && isNewdataMember(list);
+};
 
 var copyDir = function (src, dest) {
   fs.existsSync(dest) || fs.mkdirSync(dest);
@@ -60,8 +62,8 @@ module.exports = ({
   copy = [],
 }) => {
   if (!isNewdata(dir))
-    throw new Error("指定されたディレクトリは newdata ではありません:", dir);
+    throw new Error("指定されたディレクトリは newdata ではありません: " + dir);
   if (!isNewdataMember(copy) || copy.length === 0)
-    throw new Error("コピー対象の指定が無効です: ", copy);
+    throw new Error("コピー対象の指定が無効です: " + copy);
   copy.forEach((c) => copyDir(`${dir}/${c}`, `./${c}`));
 };
