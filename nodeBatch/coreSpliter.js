@@ -43,9 +43,11 @@ let alterMainJs = mainJs;
 list.forEach(({ coreName, files }) => {
   let filenames = [];
   files.forEach(({ code, className }) => {
-    filenames.push(`"js/src/${coreName}/${className}.js"`);
+    const filepath = `js/src/${coreName}/${className}.js`;
+    filenames.push(`"${filepath}"`);
     mkdirp(`./js/src/${coreName}`);
-    fs.writeFileSync(`./js/src/${coreName}/${className}.js`, code);
+    fs.writeFileSync(`./${filepath}`, code);
+    console.log(`DONE: ${filepath}`);
   });
   alterMainJs = alterMainJs.replace(
     `"js/rmmz_${coreName}.js"`,
@@ -53,3 +55,4 @@ list.forEach(({ coreName, files }) => {
   );
 });
 fs.writeFileSync(`./js/src/main.js`, alterMainJs);
+console.log(`DONE: js/src/main.js`);
