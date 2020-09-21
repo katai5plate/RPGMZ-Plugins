@@ -1,5 +1,5 @@
 # RPGツクールMZ用
-# 使用時はファイル名を .gitignore にしてください。
+# 使用時はファイル名を .gitignore にし、必要に応じて適宜コメントアウトしてください。
 
 # audio/bgm
 audio/bgm/Battle1.ogg
@@ -634,6 +634,9 @@ effects/Texture/Wind.png
 effects/Texture/WindMark.png
 effects/Texture/WingL.png
 effects/Texture/WingR.png
+
+# icon
+icon/icon.png
 
 # fonts
 fonts/mplus-1m-regular.woff
