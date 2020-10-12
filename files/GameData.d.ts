@@ -1,24 +1,22 @@
 // RPGツクールMZ の data/*.json 型定義
 
 type X2<T> = [T, T];
+
 type P1<T, L extends T[]> = [...L, T];
 type M2<T, L extends T[]> = [...L, ...L];
 type M4<T, L extends T[], R extends T[] = M2<T, L>> = [...R, ...R];
 
 type X4<T> = M2<T, X2<T>>;
-type X8<T> = M2<T, X4<T>>;
-
 type X5<T> = P1<T, X4<T>>;
-type X10<T> = M2<T, X5<T>>;
-type X20<T> = M2<T, X10<T>>;
-type X100<T, L extends T[] = X20<T>> = [...M4<T, L>, ...L];
-
-type X12<T> = [...X10<T>, ...X2<T>];
-type X24<T> = M2<T, X12<T>>;
-
 type X6<T> = P1<T, X5<T>>;
+type X8<T> = M2<T, X4<T>>;
 type X9<T> = P1<T, X8<T>>;
+type X10<T> = M2<T, X5<T>>;
+type X12<T> = [...X10<T>, ...X2<T>];
 type X13<T> = P1<T, X12<T>>;
+type X20<T> = M2<T, X10<T>>;
+type X24<T> = M2<T, X12<T>>;
+type X100<T, L extends T[] = X20<T>> = [...M4<T, L>, ...L];
 
 type DBList<T> = [null, ...T[]];
 
