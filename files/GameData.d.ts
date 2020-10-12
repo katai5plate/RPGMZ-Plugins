@@ -20,7 +20,7 @@ type Array12<T> = APlusAny<T, Array10<T>, Array2<T>>;
 type Array13<T> = APlusOne<T, Array12<T>>;
 type Array20<T> = ATimes2<T, Array10<T>>;
 type Array24<T> = ATimes2<T, Array12<T>>;
-type Array100<T, L extends T[] = Array20<T>> = APlusAny<T, ATimes4<T, L>, L>;
+type Array100<T> = APlusAny<T, ATimes4<T, Array20<T>>, Array20<T>>;
 
 type DBList<T> = [null, ...T[]];
 
