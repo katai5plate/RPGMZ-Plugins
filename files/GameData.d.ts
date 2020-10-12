@@ -1,18 +1,25 @@
 // RPGツクールMZ の data/*.json 型定義
 
 type X2<T> = [T, T];
-type X4<T, L extends T[] = X2<T>> = [...L, ...L];
-type X8<T, L extends T[] = X4<T>> = [...L, ...L];
 
-type X5<T, L extends T[] = X4<T>> = [...L, T];
-type X10<T, L extends T[] = X5<T>> = [...L, ...L];
-type X20<T, L extends T[] = X10<T>> = [...L, ...L];
-type X100<T, L extends T[] = X20<T>> = [...L, ...L, ...L, ...L, ...L];
+type P1<T, L extends T[]> = [...L, T];
+type M2<T, L extends T[]> = [...L, ...L];
+type M4<T, L extends T[], R extends T[] = M2<T, L>> = [...R, ...R];
 
-type X6<T, L extends T[] = X5<T>> = [...L, T];
-type X9<T, L extends T[] = X8<T>> = [...L, T];
-type X13<T, L extends T[] = X10<T>> = [...L, ...X2<T>, T];
-type X24<T, L extends T[] = X20<T>> = [...L, ...X4<T>];
+type X4<T, L extends T[] = X2<T>> = M2<T, L>;
+type X8<T, L extends T[] = X4<T>> = M2<T, L>;
+
+type X5<T, L extends T[] = X4<T>> = P1<T, L>;
+type X10<T, L extends T[] = X5<T>> = M2<T, L>;
+type X20<T, L extends T[] = X10<T>> = M2<T, L>;
+type X100<T, L extends T[] = X20<T>> = [...M4<T, L>, ...X20<T>];
+
+type X12<T, L extends T[] = X10<T>> = [...L, ...X2<T>];
+type X24<T, L extends T[] = X12<T>> = M2<T, L>;
+
+type X6<T, L extends T[] = X5<T>> = P1<T, L>;
+type X9<T, L extends T[] = X8<T>> = P1<T, L>;
+type X13<T, L extends T[] = X12<T>> = P1<T, L>;
 
 type DBList<T> = [null, ...T[]];
 
