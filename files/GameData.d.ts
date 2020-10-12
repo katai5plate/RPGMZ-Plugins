@@ -1,30 +1,40 @@
 // RPGツクールMZ の data/*.json 型定義
 
-type X2<T> = [T, T];
-type P1<T, L extends T[]> = [...L, T];
-type CC<T, A extends T[], B extends T[] = A> = [...A, ...B];
+type Array2<T> = [T, T];
 
-type M2<T, L extends T[]> = CC<T, L>;
-type M4<T, L extends T[], R extends T[] = M2<T, L>> = CC<T, R>;
+type APlusOne<T, L extends T[]> = [...L, T];
+type APlusAny<T, A extends T[], B extends T[] = A> = [...A, ...B];
 
-type X4<T> = M2<T, X2<T>>;
-type X5<T> = P1<T, X4<T>>;
-type X6<T> = P1<T, X5<T>>;
-type X8<T> = M2<T, X4<T>>;
-type X9<T> = P1<T, X8<T>>;
-type X10<T> = M2<T, X5<T>>;
-type X12<T> = CC<T, X10<T>, X2<T>>;
-type X13<T> = P1<T, X12<T>>;
-type X20<T> = M2<T, X10<T>>;
-type X24<T> = M2<T, X12<T>>;
-type X100<T, L extends T[] = X20<T>> = CC<T, M4<T, L>, L>;
+type ATimes2<T, L extends T[]> = APlusAny<T, L>;
+type ATimes4<T, L extends T[], R extends T[] = ATimes2<T, L>> = APlusAny<T, R>;
+
+type Array4<T> = ATimes2<T, Array2<T>>;
+type Array5<T> = APlusOne<T, Array4<T>>;
+type Array6<T> = APlusOne<T, Array5<T>>;
+type Array8<T> = ATimes2<T, Array4<T>>;
+type Array9<T> = APlusOne<T, Array8<T>>;
+type Array10<T> = ATimes2<T, Array5<T>>;
+type Array12<T> = APlusAny<T, Array10<T>, Array2<T>>;
+type Array13<T> = APlusOne<T, Array12<T>>;
+type Array20<T> = ATimes2<T, Array10<T>>;
+type Array24<T> = ATimes2<T, Array12<T>>;
+type Array100<T, L extends T[] = Array20<T>> = APlusAny<T, ATimes4<T, L>, L>;
 
 type DBList<T> = [null, ...T[]];
 
-type ExpParams = X4<number>;
-type ColorTone = X4<number>;
-type Equips = X5<number>;
-type StateChangeParams = X8<number>;
+type ExpParams = Array4<number>;
+type ColorTone = Array4<number>;
+type Equips = Array5<number>;
+type StateChangeParams = Array8<number>;
+type ClassParams = Array8<Array100<number>>;
+type AttackMotions = Array13<AttackMotion>;
+type ItemCategories = Array4<boolean>;
+type MenuCommands = Array6<boolean>;
+type SystemSounds = Array24<Audio>;
+type TilesetNames = Array9<string>;
+type TermsCommandsBasic = Array20<string>;
+type TermsCommandsConfirm = Array2<string>;
+type TermsCommandsShop = Array2<string>;
 
 interface Event {
   code: number;
@@ -134,7 +144,7 @@ export interface Class {
   learnings: Learning[];
   name: string;
   note: string;
-  params: X8<X100<number>>;
+  params: ClassParams;
 }
 export type Classes = DBList<Class>;
 export interface CommonEvent {
@@ -409,9 +419,15 @@ interface TermMessages {
   actionFailure: string;
 }
 interface Terms {
-  basic: X10<string>;
-  commands: [...X20<string>, null, ...X2<string>, null, ...X2<string>];
-  params: X10<string>;
+  basic: Array10<string>;
+  commands: [
+    ...TermsCommandsBasic,
+    null,
+    ...TermsCommandsConfirm,
+    null,
+    ...TermsCommandsShop
+  ];
+  params: Array10<string>;
   messages: TermMessages;
 }
 interface TestBattler {
@@ -428,7 +444,7 @@ export interface System {
   advanced: AdvancedSettings;
   airship: Ship;
   armorTypes: string[];
-  attackMotions: X13<AttackMotion>;
+  attackMotions: AttackMotions;
   battleBgm: Audio;
   battleback1Name: string;
   battleback2Name: string;
@@ -443,10 +459,10 @@ export interface System {
   equipTypes: string[];
   gameTitle: string;
   gameoverMe: Audio;
-  itemCategories: X4<boolean>;
+  itemCategories: ItemCategories;
   locale: string;
   magicSkills: number[];
-  menuCommands: X6<boolean>;
+  menuCommands: MenuCommands;
   optAutosave: boolean;
   optDisplayTp: boolean;
   optDrawTitle: boolean;
@@ -460,7 +476,7 @@ export interface System {
   partyMembers: number[];
   ship: Ship;
   skillTypes: string[];
-  sounds: X24<Audio>;
+  sounds: SystemSounds;
   startMapId: number;
   startX: number;
   startY: number;
@@ -484,7 +500,7 @@ export interface Tileset {
   mode: number;
   name: string;
   note: string;
-  tilesetNames: X9<string>;
+  tilesetNames: TilesetNames;
 }
 export type Tilesets = DBList<Tileset>;
 interface TroopMember {
