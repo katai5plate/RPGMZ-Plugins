@@ -22,42 +22,42 @@ type Array100<T, L extends T[] = Array20<T>> = APlusAny<T, ATimes4<T, L>, L>;
 
 type DBList<T> = [null, ...T[]];
 
-type ColorTone = Array4<number>;
-type Equips = Array5<number>;
-type StateChangeParams = Array8<number>;
+export type ColorTone = Array4<number>;
+export type Equips = Array5<number>;
+export type StateChangeParams = Array8<number>;
 
-interface Event {
+export interface Event {
   code: number;
   indent?: number;
   parameters: [];
 }
-type EventList = Event[];
-interface Effect {
+export type EventList = Event[];
+export interface Effect {
   code: number;
   dataId: number;
   value1: number;
   value2: number;
 }
-type Effects = Effect[];
-interface Audio {
+export type Effects = Effect[];
+export interface Audio {
   name: string;
   pan: number;
   pitch: number;
   volume: number;
 }
-interface Damage {
+export interface Damage {
   critical: boolean;
   elementId: number;
   formula: string;
   type: number;
   variance: number;
 }
-interface Trait {
+export interface Trait {
   code: number;
   dataId: number;
   value: number;
 }
-type Traits = Trait[];
+export type Traits = Trait[];
 
 export interface Actor {
   id: number;
@@ -78,17 +78,17 @@ export interface Actor {
 }
 export type Actors = DBList<Actor>;
 
-interface Animation_FlashTiming {
+export interface Animation_FlashTiming {
   frame: number;
   duration: number;
   color: ColorTone;
 }
-interface Animation_Rotation {
+export interface Animation_Rotation {
   x: number;
   y: number;
   z: number;
 }
-interface Animation_SoundTiming {
+export interface Animation_SoundTiming {
   frame: number;
   se: Audio;
 }
@@ -121,13 +121,13 @@ export interface Armore {
 }
 export type Armores = DBList<Armore>;
 
-interface Class_Learning {
+export interface Class_Learning {
   level: number;
   skillId: number;
   note: string;
 }
-type Class_ExpParams = Array4<number>;
-type Class_Params = Array8<Array100<number>>;
+export type Class_ExpParams = Array4<number>;
+export type Class_Params = Array8<Array100<number>>;
 export interface Class {
   id: number;
   expParams: Class_ExpParams;
@@ -148,12 +148,12 @@ export interface CommonEvent {
 }
 export type CommonEvents = DBList<CommonEvent>;
 
-interface Enemy_DropItem {
+export interface Enemy_DropItem {
   dataId: number;
   denominator: number;
   kind: number;
 }
-interface Enemy_Action {
+export interface Enemy_Action {
   conditionParam1: number;
   conditionParam2: number;
   conditionType: number;
@@ -197,12 +197,12 @@ export interface Item {
 }
 export type Items = DBList<Item>;
 
-interface Map_Encounter {
+export interface Map_Encounter {
   troopId: number;
   weight: number;
   regionSet: number[];
 }
-interface Map_Event {
+export interface Map_Event {
   id: number;
   name: string;
   note: string;
@@ -210,7 +210,7 @@ interface Map_Event {
   x: number;
   y: number;
 }
-interface Map_EventPage {
+export interface Map_EventPage {
   conditions: Map_EventPageConditions;
   directionFix: boolean;
   image: Map_EventPageCharactorImage;
@@ -225,7 +225,7 @@ interface Map_EventPage {
   trigger: number;
   walkAnime: boolean;
 }
-interface Map_EventPageConditions {
+export interface Map_EventPageConditions {
   actorId: number;
   actorValid: boolean;
   itemId: number;
@@ -240,14 +240,14 @@ interface Map_EventPageConditions {
   variableValid: boolean;
   variableValue: number;
 }
-interface Map_EventPageCharactorImage {
+export interface Map_EventPageCharactorImage {
   tileId: number;
   characterName: string;
   direction: number;
   pattern: number;
   characterIndex: number;
 }
-interface Map_EventPageMoveRoute {
+export interface Map_EventPageMoveRoute {
   list: EventList;
   repeat: boolean;
   skippable: boolean;
@@ -344,7 +344,7 @@ export interface State {
 }
 export type States = DBList<State>;
 
-interface System_Advanced {
+export interface System_Advanced {
   gameId: number;
   screenWidth: number;
   screenHeight: number;
@@ -355,12 +355,12 @@ interface System_Advanced {
   fontSize: number;
   mainFontFilename: string;
 }
-type System_TermsBasic = Array10<string>;
-type System_TermsCommandsBasic = Array20<string>;
-type System_TermsCommandsConfirm = Array2<string>;
-type System_TermsCommandsShop = Array2<string>;
-type System_TermsParams = Array10<string>;
-interface System_TermMessages {
+export type System_TermsBasic = Array10<string>;
+export type System_TermsCommandsBasic = Array20<string>;
+export type System_TermsCommandsConfirm = Array2<string>;
+export type System_TermsCommandsShop = Array2<string>;
+export type System_TermsParams = Array10<string>;
+export interface System_TermMessages {
   alwaysDash: string;
   commandRemember: string;
   touchUI: string;
@@ -415,7 +415,7 @@ interface System_TermMessages {
   buffRemove: string;
   actionFailure: string;
 }
-interface Terms {
+export interface Terms {
   basic: System_TermsBasic;
   commands: [
     ...System_TermsCommandsBasic,
@@ -427,21 +427,21 @@ interface Terms {
   params: System_TermsParams;
   messages: System_TermMessages;
 }
-interface System_TestBattler {
+export interface System_TestBattler {
   actorId: number;
   level: number;
   equips: Equips;
 }
-interface System_TitleCommandWindow {
+export interface System_TitleCommandWindow {
   background: number;
   offsetX: number;
   offsetY: number;
 }
-type System_AttackMotions = Array13<{
+export type System_AttackMotions = Array13<{
   type: number;
   weaponImageId: number;
 }>;
-interface System_Ship {
+export interface System_Ship {
   bgm: Audio;
   characterIndex: number;
   characterName: string;
@@ -449,9 +449,9 @@ interface System_Ship {
   startX: number;
   startY: number;
 }
-type System_ItemCategories = Array4<boolean>;
-type System_MenuCommands = Array6<boolean>;
-type System_Sounds = Array24<Audio>;
+export type System_ItemCategories = Array4<boolean>;
+export type System_MenuCommands = Array6<boolean>;
+export type System_Sounds = Array24<Audio>;
 export interface System {
   advanced: System_Advanced;
   airship: System_Ship;
@@ -507,7 +507,7 @@ export interface System {
   windowTone: ColorTone;
 }
 
-type Tileset_Names = Array9<string>;
+export type Tileset_Names = Array9<string>;
 export interface Tileset {
   id: number;
   flags: number[];
@@ -518,18 +518,18 @@ export interface Tileset {
 }
 export type Tilesets = DBList<Tileset>;
 
-interface Troop_Member {
+export interface Troop_Member {
   enemyId: number;
   x: number;
   y: number;
   hidden: boolean;
 }
-interface Troop_Page {
+export interface Troop_Page {
   conditions: Troop_PageConditions;
   list: EventList;
   span: number;
 }
-interface Troop_PageConditions {
+export interface Troop_PageConditions {
   actorHp: number;
   actorId: number;
   actorValid: boolean;
