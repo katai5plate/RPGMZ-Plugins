@@ -1,5 +1,7 @@
 // RPGツクールMZ の data/*.json 型定義
 
+/* 配列定義用 */
+
 type Array2<T> = [T, T];
 
 type APlusOne<T, L extends T[]> = [...L, T];
@@ -22,10 +24,11 @@ type Array100<T, L extends T[] = Array20<T>> = APlusAny<T, ATimes4<T, L>, L>;
 
 type DBList<T> = [null, ...T[]];
 
+/* 共通 */
+
 export type ColorTone = Array4<number>;
 export type Equips = Array5<number>;
 export type StateChangeParams = Array8<number>;
-
 export interface Event {
   code: number;
   indent?: number;
@@ -59,6 +62,8 @@ export interface Trait {
 }
 export type Traits = Trait[];
 
+/* アクター */
+
 export interface Actor {
   id: number;
   battlerName: string;
@@ -77,6 +82,8 @@ export interface Actor {
   profile: string;
 }
 export type Actors = DBList<Actor>;
+
+/* アニメーション */
 
 export interface Animation_FlashTiming {
   frame: number;
@@ -107,6 +114,8 @@ export interface Animation {
 }
 export type Animations = DBList<Animation>;
 
+/* 防具 */
+
 export interface Armore {
   id: number;
   atypeId: number;
@@ -120,6 +129,8 @@ export interface Armore {
   price: number;
 }
 export type Armores = DBList<Armore>;
+
+/* 職業 */
 
 export interface Class_Learning {
   level: number;
@@ -139,6 +150,8 @@ export interface Class {
 }
 export type Classes = DBList<Class>;
 
+/* コモンイベント */
+
 export interface CommonEvent {
   id: number;
   list: EventList;
@@ -147,6 +160,8 @@ export interface CommonEvent {
   trigger: number;
 }
 export type CommonEvents = DBList<CommonEvent>;
+
+/* 敵キャラ */
 
 export interface Enemy_DropItem {
   dataId: number;
@@ -175,6 +190,8 @@ export interface Enemy {
 }
 export type Enemies = DBList<Enemy>;
 
+/* アイテム */
+
 export interface Item {
   id: number;
   animationId: number;
@@ -196,6 +213,8 @@ export interface Item {
   tpGain: number;
 }
 export type Items = DBList<Item>;
+
+/* マップデータ */
 
 export interface Map_Encounter {
   troopId: number;
@@ -280,6 +299,8 @@ export interface Map {
   events: DBList<Map_Event>;
 }
 
+/* マップ設定 */
+
 export interface MapInfo {
   id: number;
   expanded: boolean;
@@ -290,6 +311,8 @@ export interface MapInfo {
   scrollY: number;
 }
 export type MapInfos = DBList<MapInfo>;
+
+/* スキル */
 
 export interface Skill {
   id: number;
@@ -318,6 +341,8 @@ export interface Skill {
 }
 export type Skills = DBList<Skill>;
 
+/* ステート */
+
 export interface State {
   id: number;
   autoRemovalTiming: number;
@@ -343,6 +368,8 @@ export interface State {
   stepsToRemove: number;
 }
 export type States = DBList<State>;
+
+/* システム */
 
 export interface System_Advanced {
   gameId: number;
@@ -507,6 +534,8 @@ export interface System {
   windowTone: ColorTone;
 }
 
+/* タイルセット */
+
 export type Tileset_Names = Array9<string>;
 export interface Tileset {
   id: number;
@@ -517,6 +546,8 @@ export interface Tileset {
   tilesetNames: Tileset_Names;
 }
 export type Tilesets = DBList<Tileset>;
+
+/* 敵グループ */
 
 export interface Troop_Member {
   enemyId: number;
@@ -550,6 +581,8 @@ export interface Troop {
   pages: Troop_Page[];
 }
 export type Troops = DBList<Troop>;
+
+/* 武器 */
 
 export interface Weapon {
   id: number;
