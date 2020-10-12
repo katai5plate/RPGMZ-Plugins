@@ -3,14 +3,16 @@
 type X2<T> = [T, T];
 type X4<T, L extends T[] = X2<T>> = [...L, ...L];
 type X8<T, L extends T[] = X4<T>> = [...L, ...L];
-type X9<T, L extends T[] = X8<T>> = [...L, T];
-type X5<T, L extends T[] = X2<T>> = [...L, ...L, T];
-type X6<T, L extends T[] = X5<T>> = [...L, T];
+
+type X5<T, L extends T[] = X4<T>> = [...L, T];
 type X10<T, L extends T[] = X5<T>> = [...L, ...L];
-type X13<T, L extends T[] = X10<T>> = [...L, ...X2<T>, T];
 type X20<T, L extends T[] = X10<T>> = [...L, ...L];
-type X24<T, L extends T[] = X20<T>> = [...L, ...X4<T>];
 type X100<T, L extends T[] = X20<T>> = [...L, ...L, ...L, ...L, ...L];
+
+type X6<T, L extends T[] = X5<T>> = [...L, T];
+type X9<T, L extends T[] = X8<T>> = [...L, T];
+type X13<T, L extends T[] = X10<T>> = [...L, ...X2<T>, T];
+type X24<T, L extends T[] = X20<T>> = [...L, ...X4<T>];
 
 type DBList<T> = [null, ...T[]];
 
