@@ -22,19 +22,24 @@ type Array100<T, L extends T[] = Array20<T>> = APlusAny<T, ATimes4<T, L>, L>;
 
 type DBList<T> = [null, ...T[]];
 
-type ExpParams = Array4<number>;
 type ColorTone = Array4<number>;
 type Equips = Array5<number>;
 type StateChangeParams = Array8<number>;
+
+type ClassExpParams = Array4<number>;
 type ClassParams = Array8<Array100<number>>;
-type AttackMotions = Array13<AttackMotion>;
-type ItemCategories = Array4<boolean>;
-type MenuCommands = Array6<boolean>;
-type SystemSounds = Array24<Audio>;
+
 type TilesetNames = Array9<string>;
-type TermsCommandsBasic = Array20<string>;
-type TermsCommandsConfirm = Array2<string>;
-type TermsCommandsShop = Array2<string>;
+
+type SystemAttackMotions = Array13<AttackMotion>;
+type SystemItemCategories = Array4<boolean>;
+type SystemMenuCommands = Array6<boolean>;
+type SystemSounds = Array24<Audio>;
+type SystemTermsBasic = Array10<string>;
+type SystemTermsCommandsBasic = Array20<string>;
+type SystemTermsCommandsConfirm = Array2<string>;
+type SystemTermsCommandsShop = Array2<string>;
+type SystemTermsParams = Array10<string>;
 
 interface Event {
   code: number;
@@ -139,7 +144,7 @@ interface Learning {
 }
 export interface Class {
   id: number;
-  expParams: ExpParams;
+  expParams: ClassExpParams;
   traits: Traits;
   learnings: Learning[];
   name: string;
@@ -419,15 +424,15 @@ interface TermMessages {
   actionFailure: string;
 }
 interface Terms {
-  basic: Array10<string>;
+  basic: SystemTermsBasic;
   commands: [
-    ...TermsCommandsBasic,
+    ...SystemTermsCommandsBasic,
     null,
-    ...TermsCommandsConfirm,
+    ...SystemTermsCommandsConfirm,
     null,
-    ...TermsCommandsShop
+    ...SystemTermsCommandsShop
   ];
-  params: Array10<string>;
+  params: SystemTermsParams;
   messages: TermMessages;
 }
 interface TestBattler {
@@ -444,7 +449,7 @@ export interface System {
   advanced: AdvancedSettings;
   airship: Ship;
   armorTypes: string[];
-  attackMotions: AttackMotions;
+  attackMotions: SystemAttackMotions;
   battleBgm: Audio;
   battleback1Name: string;
   battleback2Name: string;
@@ -459,10 +464,10 @@ export interface System {
   equipTypes: string[];
   gameTitle: string;
   gameoverMe: Audio;
-  itemCategories: ItemCategories;
+  itemCategories: SystemItemCategories;
   locale: string;
   magicSkills: number[];
-  menuCommands: MenuCommands;
+  menuCommands: SystemMenuCommands;
   optAutosave: boolean;
   optDisplayTp: boolean;
   optDrawTitle: boolean;
