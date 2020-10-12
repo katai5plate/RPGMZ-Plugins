@@ -1,7 +1,6 @@
 // RPGツクールMZ の data/*.json 型定義
 
 type X2<T> = [T, T];
-
 type P1<T, L extends T[]> = [...L, T];
 type M2<T, L extends T[]> = [...L, ...L];
 type M4<T, L extends T[], R extends T[] = M2<T, L>> = [...R, ...R];
