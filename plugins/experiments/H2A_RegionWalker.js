@@ -1,6 +1,6 @@
 /*:
  * @target MZ
- * @plugindesc 移動指定でリージョン ID を辿って動作させる
+ * @plugindesc キャラにリージョンを辿って歩かせる
  * @author Had2Apps
  * @url https://github.com/katai5plate/RPGMZ-Plugins
  *
@@ -119,7 +119,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.0.0
+ * プラグインバージョン: v1.0.1
  *
  */
 
