@@ -86,6 +86,16 @@
  *  @desc スイッチを指定すると、移動が終わったら自動で ON になります。
  *  @type switch
  *  @default 0
+ * @arg beforeScripts
+ *  @text スクリプト(初動)
+ *  @desc (上級者向け機能) 任意の移動スクリプトを実行ルートの始めに追加します
+ *  @type string[]
+ *  @default []
+ * @arg afterScripts
+ *  @text スクリプト(末尾)
+ *  @desc (上級者向け機能) 任意の移動スクリプトを実行ルートの末尾に追加します
+ *  @type string[]
+ *  @default []
  *
  * @command wait
  * @text 移動完了まで待つ
@@ -109,6 +119,16 @@
  * 　終端のリージョンを踏んでいる状態になります。
  * 　そのため、到達時にリージョンの外まで歩かせたい場合は
  * 　「到着したら一歩前進」を有効化してください。
+ * ・プラグインコマンドの「スクリプト」は、上級者向け機能です。
+ *   `ROUTE_MOVE_DOWN` `ROUTE_WAIT 60`
+ *   `ROUTE_CHANGE_IMAGE "Actor1" 3`
+ *   `ROUTE_PLAY_SE {"name":"Dog","pan":0,"pitch":100,"volume":90}`
+ *   のように記述します。 (ROUTE_? arg1 arg2)
+ *   ROUTE_ で始まる文は、rmmz_objects.js の
+ *   processMoveCommand の定義を参照してください。
+ *   ROUTE_ は省略しても構いません。 例: `WAIT 60`
+ *   スペースで区切り、2 塊目からは JSON で値が評価されます。
+ *   ROUTE_PLAY_SE のように JSON を引数に渡す場合はスペースを省いてください。
  *
  * [注意]
  * ・移動が終わるまでウェイトになるため、
@@ -122,7 +142,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.0.3
+ * プラグインバージョン: v1.1.0
  *
  */
 
@@ -214,6 +234,8 @@
       wait,
       through,
       endSwitch,
+      beforeScripts,
+      afterScripts,
       // repeat,
       // onTurnFlame,
       // onTurnDir,
@@ -222,6 +244,10 @@
       const speed = +walkSpeed;
       const isThrough = through === "true";
       const endSwitchId = +endSwitch;
+      const enableScripts = ["[]", ""].reduce(
+        (_, x) => x === beforeScripts || x === afterScripts,
+        false
+      );
       const { x, y, _direction } = Game_Interpreter.prototype.character(
         characterId
       );
@@ -318,6 +344,29 @@
             indent: null,
           },
         ];
+      }
+      if (enableScripts) {
+        try {
+          const [before, after] = [beforeScripts, afterScripts].map((scripts) =>
+            JSON.parse(scripts === "" ? "[]" : scripts).map((x) => {
+              const [method, ...args] = x.split(" ");
+              const code =
+                Game_Character[
+                  /^ROUTE_/.test(method) ? method : `ROUTE_${method}`
+                ];
+              if (!code) throw "不正な ROUTE 名";
+              return {
+                code: Game_Character[method],
+                parameters: args.map((p) => JSON.parse(p)),
+                index: null,
+              };
+            })
+          );
+          routeList = [...before, ...routeList, ...after];
+        } catch (error) {
+          if (isStrictMode)
+            throw new Error("厳格モード: スクリプト構文エラー -> " + error);
+        }
       }
       this._list = getInjectedListCommands(this._list, this._index, [
         {
