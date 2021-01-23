@@ -97,6 +97,55 @@
  *  @type string[]
  *  @default []
  *
+ * @command script
+ * @text 移動スクリプト
+ * @desc (上級者向け機能) 移動スクリプトを入力します。
+ * @arg characterId
+ *  @text イベント ID
+ *  @desc 移動する マップイベント ID (主人公: -1)
+ *  @type number
+ *  @min -1
+ *  @default -1
+ * @arg walkSpeed
+ *  @text 移動速度
+ *  @desc 歩くスピード
+ *  @type select
+ *  @option 指定しない
+ *  @value 0
+ *  @option 1: 1/8倍速
+ *  @value 1
+ *  @option 2: 1/4倍速
+ *  @value 2
+ *  @option 3: 1/2倍速
+ *  @value 3
+ *  @option 4: 標準速
+ *  @value 4
+ *  @option 5: 2倍速
+ *  @value 5
+ *  @option 6: 4倍速
+ *  @value 6
+ *  @default 0
+ * @arg wait
+ *  @text 完了までウェイト
+ *  @desc 終端に辿りつくまでウェイトします。
+ *  @type boolean
+ *  @default true
+ * @arg through
+ *  @text すり抜ける
+ *  @desc すり抜けを ON にします
+ *  @type boolean
+ *  @default false
+ * @arg endSwitch
+ *  @text 移動完了スイッチ
+ *  @desc スイッチを指定すると、移動が終わったら自動で ON になります。
+ *  @type switch
+ *  @default 0
+ * @arg scripts
+ *  @text スクリプト
+ *  @desc 任意の移動スクリプト
+ *  @type string[]
+ *  @default []
+ *
  * @command wait
  * @text 移動完了まで待つ
  * @desc スイッチが ON になるまでウェイトします。
@@ -135,41 +184,14 @@
  * 　経路の途中にイベント等があると、
  * 　そのままゲームが先に進まなくなる可能性があります。
  *
- * [既知のバグ]
- * ・「歩き始める方角」が正しく機能しない時がある。
  *
  * Copyright (c) 2021 Had2Apps
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.1.0
+ * プラグインバージョン: v1.2.0
  *
  */
-
-// 没機能
-// 没理由: ランダムの場合、移動ルートをキャラ毎にどこかに記録しておくか、再走する必要があるため。
-// * @arg repeat
-// *  @text 動作を繰り返す
-// *  @desc 終端に辿りつくと、道を引き返しループします。
-// *  @type boolean
-// *  @default false
-// * @arg onTurnFlame
-// *  @text 振り向きウェイト
-// *  @desc 「動作を繰り返す」場合、引き返す時にクルッと向きを回転するのにかかる時間を指定します。
-// *  @type number
-// *  @min 1
-// *  @default 30
-// * @arg onTurnDir
-// *  @text 振り向き方向
-// *  @desc 「動作を繰り返す」場合、引き返す時にクルッと向きを回転する向きを指定します
-// *  @type select
-// *  @option ランダム
-// *  @value random
-// *  @option 左
-// *  @value left
-// *  @option 右
-// *  @value right
-// *  @default random
 
 (() => {
   const pluginName = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
@@ -193,7 +215,7 @@
     ];
   };
   /** @returns {{dir:number,after:{x:number,y:number}}|null|never} */
-  const getRegionSearchTarget = ({ regionId, target }) => {
+  const getRegionSearchTarget = ({ regionId, target, oneWay }) => {
     const candidates = [{ y: 1 }, { x: -1 }, { x: 1 }, { y: -1 }]
       .map(({ x, y }, i) => ({
         x: target.x + (x || 0),
@@ -201,7 +223,9 @@
         d: +"2468"[i], // 正面
         r: +"8642"[i], // 背後
       }))
-      .filter(({ r }) => r !== target.direction)
+      .filter(({ d, r }) =>
+        oneWay ? d === target.direction : r !== target.direction
+      )
       .reduce((p, { x, y, d }) => {
         const id = $gameMap.regionId(x, y);
         if (id === regionId) return [...p, { dir: d, after: { x, y } }];
@@ -223,54 +247,49 @@
     return null;
   };
 
-  PluginManager.registerCommand(
-    pluginName,
-    "run",
-    function ({
-      regionId,
-      characterId,
-      initDirection,
-      walkSpeed,
-      wait,
-      through,
-      endSwitch,
-      beforeScripts,
-      afterScripts,
-      // repeat,
-      // onTurnFlame,
-      // onTurnDir,
-    }) {
-      // const isRepeat = repeat === "true";
-      const speed = +walkSpeed;
-      const isThrough = through === "true";
-      const endSwitchId = +endSwitch;
-      const enableScripts = ["[]", ""].reduce(
-        (_, x) => x === beforeScripts || x === afterScripts,
-        false
-      );
-      const { x, y, _direction } = Game_Interpreter.prototype.character(
-        characterId
-      );
-      let virtualTarget = {
-        x,
-        y,
-        direction: initDirection ? +initDirection : _direction,
-      };
-      let routeList = [];
-      let loopIndex = 0;
-      const loopMax = 100000;
-      if (speed) {
-        routeList = [
-          ...routeList,
-          {
-            code: Game_Character.ROUTE_CHANGE_SPEED,
-            parameters: [speed],
-            indent: null,
-          },
-        ];
-      }
+  const mainProcess = function ({
+    _noSearch,
+    regionId,
+    characterId,
+    initDirection,
+    walkSpeed,
+    wait,
+    through,
+    endSwitch,
+    beforeScripts,
+    afterScripts,
+  }) {
+    const speed = +walkSpeed;
+    const isThrough = through === "true";
+    const endSwitchId = +endSwitch;
+    const enableScripts = beforeScripts.length > 2 || afterScripts.length > 2;
+    const { x, y, _direction } = Game_Interpreter.prototype.character(
+      characterId
+    );
+    let virtualTarget = {
+      x,
+      y,
+      direction: +initDirection ? +initDirection : _direction,
+    };
+    let routeList = [];
+    let loopIndex = 0;
+    const loopMax = 100000;
+    // 移動速度
+    if (speed) {
+      routeList = [
+        ...routeList,
+        {
+          code: Game_Character.ROUTE_CHANGE_SPEED,
+          parameters: [speed],
+          indent: null,
+        },
+      ];
+    }
+    // 経路探索
+    if (!_noSearch) {
       for (loopIndex = 0; loopIndex < loopMax; loopIndex++) {
         const result = getRegionSearchTarget({
+          oneWay: +initDirection ? loopIndex === 0 : undefined,
           regionId: +regionId,
           target: virtualTarget,
         });
@@ -292,100 +311,110 @@
       }
       if (loopIndex === loopMax)
         throw new Error("経路探索数が " + loopMax + "を超えました。");
-      // if (isRepeat) {
-      //   const turnDir =
-      //     onTurnDir === "left"
-      //       ? Game_Character.ROUTE_TURN_90D_L
-      //       : onTurnDir === "right"
-      //       ? Game_Character.ROUTE_TURN_90D_R
-      //       : [
-      //           Game_Character.ROUTE_TURN_90D_L,
-      //           Game_Character.ROUTE_TURN_90D_R,
-      //         ][Math.floor(Math.random() * 2)];
-      //   const turnAction = { code: turnDir, indent: null };
-      //   const turnWait = {
-      //     code: Game_Character.ROUTE_WAIT,
-      //     parameters: [+onTurnFlame],
-      //     indent: null,
-      //   };
-      //   routeList = [
-      //     ...routeList,
-      //     turnWait,
-      //     turnAction,
-      //     turnWait,
-      //     turnAction,
-      //     turnWait,
-      //   ];
-      // }
-      if (isThrough) {
-        routeList = [
-          { code: Game_Character.ROUTE_THROUGH_ON, indent: null },
-          ...routeList,
-          { code: Game_Character.ROUTE_THROUGH_OFF, indent: null },
-        ];
+    }
+    // 一歩前進
+    if (isOneStep) {
+      routeList = [
+        ...routeList,
+        { code: Game_Character.ROUTE_MOVE_FORWARD, indent: null },
+      ];
+    }
+    // スクリプト
+    if (enableScripts) {
+      try {
+        const [before, after] = [beforeScripts, afterScripts].map((scripts) =>
+          JSON.parse(scripts === "" ? "[]" : scripts).map((x) => {
+            const [method, ...args] = x.split(" ");
+            const code =
+              Game_Character[
+                /^ROUTE_/.test(method) ? method : `ROUTE_${method}`
+              ];
+            if (!code) throw "不正な ROUTE 名";
+            return {
+              code,
+              parameters: args.map((p) => JSON.parse(p)),
+              index: null,
+            };
+          })
+        );
+        routeList = [...before, ...routeList, ...after];
+      } catch (error) {
+        if (isStrictMode)
+          throw new Error("厳格モード: スクリプト構文エラー -> " + error);
       }
-      if (isOneStep) {
-        routeList = [
-          ...routeList,
-          { code: Game_Character.ROUTE_MOVE_FORWARD, indent: null },
-        ];
-      }
-      if (endSwitchId) {
-        routeList = [
-          {
-            code: Game_Character.ROUTE_SWITCH_OFF,
-            parameters: [endSwitchId],
-            indent: null,
-          },
-          ...routeList,
-          {
-            code: Game_Character.ROUTE_SWITCH_ON,
-            parameters: [endSwitchId],
-            indent: null,
-          },
-        ];
-      }
-      if (enableScripts) {
-        try {
-          const [before, after] = [beforeScripts, afterScripts].map((scripts) =>
-            JSON.parse(scripts === "" ? "[]" : scripts).map((x) => {
-              const [method, ...args] = x.split(" ");
-              const code =
-                Game_Character[
-                  /^ROUTE_/.test(method) ? method : `ROUTE_${method}`
-                ];
-              if (!code) throw "不正な ROUTE 名";
-              return {
-                code: Game_Character[method],
-                parameters: args.map((p) => JSON.parse(p)),
-                index: null,
-              };
-            })
-          );
-          routeList = [...before, ...routeList, ...after];
-        } catch (error) {
-          if (isStrictMode)
-            throw new Error("厳格モード: スクリプト構文エラー -> " + error);
-        }
-      }
-      this._list = getInjectedListCommands(this._list, this._index, [
+    }
+    // すり抜け
+    if (isThrough) {
+      routeList = [
+        { code: Game_Character.ROUTE_THROUGH_ON, indent: null },
+        ...routeList,
+        { code: Game_Character.ROUTE_THROUGH_OFF, indent: null },
+      ];
+    }
+    // 移動完了スイッチ
+    if (endSwitchId) {
+      routeList = [
         {
-          code: 205,
-          indent: 0,
-          parameters: [
-            characterId,
-            {
-              list: [...routeList, { code: 0 }],
-              // repeat: isRepeat,
-              repeat: false,
-              skippable: false,
-              wait: wait === "true",
-            },
-          ],
+          code: Game_Character.ROUTE_SWITCH_OFF,
+          parameters: [endSwitchId],
+          indent: null,
+        },
+        ...routeList,
+        {
+          code: Game_Character.ROUTE_SWITCH_ON,
+          parameters: [endSwitchId],
+          indent: null,
+        },
+      ];
+    }
+    this._list = getInjectedListCommands(this._list, this._index, [
+      {
+        code: 205,
+        indent: 0,
+        parameters: [
+          characterId,
+          {
+            list: [...routeList, { code: 0 }],
+            // repeat: isRepeat,
+            repeat: false,
+            skippable: false,
+            wait: wait === "true",
+          },
+        ],
+      },
+    ]);
+  };
+
+  PluginManager.registerCommand(pluginName, "run", mainProcess);
+
+  PluginManager.registerCommand(
+    pluginName,
+    "script",
+    function ({
+      scripts,
+      // rest
+      characterId,
+      walkSpeed,
+      wait,
+      through,
+      endSwitch,
+    }) {
+      mainProcess.apply(this, [
+        {
+          beforeScripts: scripts,
+          characterId,
+          walkSpeed,
+          wait,
+          through,
+          endSwitch,
+          _noSearch: true,
+          isOneStep: false,
+          afterScripts: "",
         },
       ]);
     }
   );
+
   PluginManager.registerCommand(pluginName, "wait", function ({ endSwitch }) {
     const endSwitchId = +endSwitch;
     this._list = getInjectedListCommands(this._list, this._index, [
