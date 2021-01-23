@@ -122,7 +122,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.0.2
+ * プラグインバージョン: v1.0.3
  *
  */
 
@@ -162,7 +162,7 @@
   const isOneStep = addOneStep === "true";
 
   /** 任意のコマンドをねじ込んだ list を取得 */
-  const getInjectedListCommand = (list, index, commands = []) => {
+  const getInjectedListCommands = (list, index, commands = []) => {
     return [
       ...list.slice(0, index + 1),
       ...commands.map(({ indent, ...c }) => ({
@@ -319,7 +319,7 @@
           },
         ];
       }
-      this._list = getInjectedListCommand(this._list, this._index, [
+      this._list = getInjectedListCommands(this._list, this._index, [
         {
           code: 205,
           indent: 0,
@@ -339,7 +339,7 @@
   );
   PluginManager.registerCommand(pluginName, "wait", function ({ endSwitch }) {
     const endSwitchId = +endSwitch;
-    this._list = getInjectedListCommand(this._list, this._index, [
+    this._list = getInjectedListCommands(this._list, this._index, [
       { code: 112, indent: 0, parameters: [] },
       { code: 111, indent: 1, parameters: [0, endSwitchId, 0] },
       { code: 113, indent: 2, parameters: [] },
