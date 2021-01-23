@@ -115,11 +115,14 @@
  * 　経路の途中にイベント等があると、
  * 　そのままゲームが先に進まなくなる可能性があります。
  *
+ * [既知のバグ]
+ * ・「歩き始める方角」が正しく機能しない時がある。
+ *
  * Copyright (c) 2021 Had2Apps
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.0.1
+ * プラグインバージョン: v1.0.2
  *
  */
 
@@ -229,7 +232,7 @@
       };
       let routeList = [];
       let loopIndex = 0;
-      const loopMax = 10000;
+      const loopMax = 100000;
       if (speed) {
         routeList = [
           ...routeList,
