@@ -41,35 +41,35 @@
  *  @text 歩き始める方角
  *  @desc どの方角を正面として歩き始めるかを設定します。
  *  @type select
- *  @option 現在の向き
- *  @value -1
- *  @option 下
- *  @value 2
- *  @option 左
- *  @value 4
- *  @option 右
- *  @value 6
- *  @option 上
- *  @value 8
- *  @default -1
+ *   @option 現在の向き
+ *    @value -1
+ *   @option 下
+ *    @value 2
+ *   @option 左
+ *    @value 4
+ *   @option 右
+ *    @value 6
+ *   @option 上
+ *    @value 8
+ *   @default -1
  * @arg walkSpeed
  *  @text 移動速度
  *  @desc 歩くスピード
  *  @type select
- *  @option 指定しない
- *  @value 0
- *  @option 1: 1/8倍速
- *  @value 1
- *  @option 2: 1/4倍速
- *  @value 2
- *  @option 3: 1/2倍速
- *  @value 3
- *  @option 4: 標準速
- *  @value 4
- *  @option 5: 2倍速
- *  @value 5
- *  @option 6: 4倍速
- *  @value 6
+ *   @option 指定しない
+ *    @value 0
+ *   @option 1: 1/8倍速
+ *    @value 1
+ *   @option 2: 1/4倍速
+ *    @value 2
+ *   @option 3: 1/2倍速
+ *    @value 3
+ *   @option 4: 標準速
+ *    @value 4
+ *   @option 5: 2倍速
+ *    @value 5
+ *   @option 6: 4倍速
+ *    @value 6
  *  @default 0
  * @arg wait
  *  @text 完了までウェイト
@@ -110,20 +110,20 @@
  *  @text 移動速度
  *  @desc 歩くスピード
  *  @type select
- *  @option 指定しない
- *  @value 0
- *  @option 1: 1/8倍速
- *  @value 1
- *  @option 2: 1/4倍速
- *  @value 2
- *  @option 3: 1/2倍速
- *  @value 3
- *  @option 4: 標準速
- *  @value 4
- *  @option 5: 2倍速
- *  @value 5
- *  @option 6: 4倍速
- *  @value 6
+ *   @option 指定しない
+ *    @value 0
+ *   @option 1: 1/8倍速
+ *    @value 1
+ *   @option 2: 1/4倍速
+ *    @value 2
+ *   @option 3: 1/2倍速
+ *    @value 3
+ *   @option 4: 標準速
+ *    @value 4
+ *   @option 5: 2倍速
+ *    @value 5
+ *   @option 6: 4倍速
+ *    @value 6
  *  @default 0
  * @arg wait
  *  @text 完了までウェイト
@@ -188,7 +188,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.3.2
+ * プラグインバージョン: v1.3.3
  *
  */
 
