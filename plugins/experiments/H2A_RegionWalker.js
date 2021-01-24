@@ -189,7 +189,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.3.0
+ * プラグインバージョン: v1.3.1
  *
  */
 
@@ -260,7 +260,7 @@
   const addWhen = (cond, fn) => (cond ? fn() : []);
   /**
    * @param {boolean} cond
-   * @param {() => {before:[],list:[],after}} fn
+   * @param {() => {before:[],list:[],after:[]}} fn3
    * @returns {[]}
    */
   const addAroundThen = (cond, fn3) => {
