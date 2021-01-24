@@ -189,7 +189,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.2.0
+ * プラグインバージョン: v1.3.0
  *
  */
 
@@ -246,6 +246,27 @@
     }
     return null;
   };
+  const routeCode = (code, ...parameters) => ({
+    code,
+    parameters,
+    index: null,
+  });
+
+  /**
+   * @param {boolean} cond
+   * @param {() => []} fn
+   * @returns {[]}
+   */
+  const addWhen = (cond, fn) => (cond ? fn() : []);
+  /**
+   * @param {boolean} cond
+   * @param {() => {before:[],list:[],after}} fn
+   * @returns {[]}
+   */
+  const addAroundThen = (cond, fn3) => {
+    const { before, list, after } = fn3();
+    return cond ? [...before, ...list, ...after] : list;
+  };
 
   const mainProcess = function ({
     _noSearch,
@@ -271,102 +292,101 @@
       y,
       direction: +initDirection ? +initDirection : _direction,
     };
-    let routeList = [];
-    let loopIndex = 0;
-    const loopMax = 100000;
-    // 移動速度
-    if (speed) {
-      routeList = [
-        ...routeList,
-        {
-          code: Game_Character.ROUTE_CHANGE_SPEED,
-          parameters: [speed],
-          indent: null,
-        },
-      ];
-    }
-    // 経路探索
-    if (!_noSearch) {
-      for (loopIndex = 0; loopIndex < loopMax; loopIndex++) {
-        const result = getRegionSearchTarget({
-          oneWay: +initDirection ? loopIndex === 0 : undefined,
-          regionId: +regionId,
-          target: virtualTarget,
-        });
-        if (result === null) break;
-        const { dir, after } = result;
-        virtualTarget = { x: after.x, y: after.y, direction: dir };
-        routeList = [
-          ...routeList,
-          {
-            code: {
-              2: Game_Character.ROUTE_MOVE_DOWN,
-              4: Game_Character.ROUTE_MOVE_LEFT,
-              6: Game_Character.ROUTE_MOVE_RIGHT,
-              8: Game_Character.ROUTE_MOVE_UP,
-            }[dir],
-            indent: null,
-          },
-        ];
-      }
-      if (loopIndex === loopMax)
-        throw new Error("経路探索数が " + loopMax + "を超えました。");
-    }
-    // 一歩前進
-    if (isOneStep) {
-      routeList = [
-        ...routeList,
-        { code: Game_Character.ROUTE_MOVE_FORWARD, indent: null },
-      ];
-    }
-    // スクリプト
-    if (enableScripts) {
-      try {
-        const [before, after] = [beforeScripts, afterScripts].map((scripts) =>
-          JSON.parse(scripts === "" ? "[]" : scripts).map((x) => {
-            const [method, ...args] = x.split(" ");
-            const code =
-              Game_Character[
-                /^ROUTE_/.test(method) ? method : `ROUTE_${method}`
-              ];
-            if (!code) throw "不正な ROUTE 名";
-            return {
-              code,
-              parameters: args.map((p) => JSON.parse(p)),
-              index: null,
-            };
-          })
-        );
-        routeList = [...before, ...routeList, ...after];
-      } catch (error) {
-        if (isStrictMode)
-          throw new Error("厳格モード: スクリプト構文エラー -> " + error);
-      }
-    }
-    // すり抜け
-    if (isThrough) {
-      routeList = [
-        { code: Game_Character.ROUTE_THROUGH_ON, indent: null },
-        ...routeList,
-        { code: Game_Character.ROUTE_THROUGH_OFF, indent: null },
-      ];
-    }
-    // 移動完了スイッチ
-    if (endSwitchId) {
-      routeList = [
-        {
-          code: Game_Character.ROUTE_SWITCH_OFF,
-          parameters: [endSwitchId],
-          indent: null,
-        },
-        ...routeList,
-        {
-          code: Game_Character.ROUTE_SWITCH_ON,
-          parameters: [endSwitchId],
-          indent: null,
-        },
-      ];
-    }
+    const gc = Game_Character;
+    const routeList = [
+      // 移動完了スイッチ
+      ...addAroundThen(endSwitchId, () => ({
+        before: [routeCode(gc.ROUTE_SWITCH_OFF, endSwitchId)],
+        list: [
+          // すり抜け
+          ...addAroundThen(isThrough, () => ({
+            before: [routeCode(gc.ROUTE_THROUGH_ON)],
+            list: [
+              // スクリプト
+              ...addAroundThen(enableScripts, () => {
+                let [before, after] = [[], []];
+                try {
+                  [before, after] = [beforeScripts, afterScripts].map(
+                    (scripts) =>
+                      JSON.parse(scripts === "" ? "[]" : scripts).map((x) => {
+                        const [method, ...args] = x.split(" ");
+                        const code =
+                          gc[
+                            /^ROUTE_/.test(method) ? method : `ROUTE_${method}`
+                          ];
+                        if (!code) throw "不正な ROUTE 名";
+                        return {
+                          code,
+                          parameters: args.map((p) => JSON.parse(p)),
+                          index: null,
+                        };
+                      })
+                  );
+                } catch (error) {
+                  if (isStrictMode)
+                    throw new Error(
+                      "厳格モード: スクリプト構文エラー -> " + error
+                    );
+                }
+                return {
+                  before,
+                  list: [
+                    // 移動速度
+                    ...addWhen(speed, () => [
+                      routeCode(gc.ROUTE_CHANGE_SPEED, speed),
+                    ]),
+                    // 経路探索
+                    ...addWhen(!_noSearch, () => {
+                      let loopIndex = 0;
+                      const loopMax = 100000;
+                      let list = [];
+                      for (loopIndex = 0; loopIndex < loopMax; loopIndex++) {
+                        const result = getRegionSearchTarget({
+                          oneWay: +initDirection ? loopIndex === 0 : undefined,
+                          regionId: +regionId,
+                          target: virtualTarget,
+                        });
+                        if (result === null) break;
+                        const { dir, after } = result;
+                        virtualTarget = {
+                          x: after.x,
+                          y: after.y,
+                          direction: dir,
+                        };
+                        list = [
+                          ...list,
+                          routeCode(
+                            {
+                              2: gc.ROUTE_MOVE_DOWN,
+                              4: gc.ROUTE_MOVE_LEFT,
+                              6: gc.ROUTE_MOVE_RIGHT,
+                              8: gc.ROUTE_MOVE_UP,
+                            }[dir]
+                          ),
+                        ];
+                      }
+                      if (loopIndex === loopMax)
+                        throw new Error(
+                          "経路探索数が " + loopMax + "を超えました。"
+                        );
+                      return list;
+                    }),
+                    // 一歩前進
+                    ...addWhen(isOneStep, () => [
+                      routeCode(gc.ROUTE_MOVE_FORWARD),
+                    ]),
+                  ],
+                  after,
+                };
+              }),
+            ],
+            after: [routeCode(gc.ROUTE_THROUGH_OFF)],
+          })),
+        ],
+        after: [routeCode(gc.ROUTE_SWITCH_ON, endSwitchId)],
+      })),
+      routeCode(0),
+    ];
     this._list = getInjectedListCommands(this._list, this._index, [
       {
         code: 205,
@@ -374,8 +394,7 @@
         parameters: [
           characterId,
           {
-            list: [...routeList, { code: 0 }],
-            // repeat: isRepeat,
+            list: routeList,
             repeat: false,
             skippable: false,
             wait: wait === "true",
