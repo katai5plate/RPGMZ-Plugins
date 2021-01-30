@@ -13,8 +13,8 @@
  * Copyright (c) 2020 Had2Apps
  * This plugin is released under the MIT License.
  *
- * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.5.0
+ * 動作確認済コアバージョン: v1.1.1
+ * プラグインバージョン: v1.5.1
  *
  * @param whenDebug
  * @text デバッグ時限定
