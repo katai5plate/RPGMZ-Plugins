@@ -13,7 +13,7 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.0.0
+ * プラグインバージョン: v1.1.0
  *
  */
 (() => {
@@ -62,6 +62,10 @@
         {
           regex: /^Argument must be an? (.*?)$/,
           after: "引数は ?? でなければなりません。",
+        },
+        {
+          regex: /^Player's starting position is not set$/,
+          after: "プレイヤーの初期位置を設定してください。",
         },
         {
           regex: /^Method not found: (.*?)$/,
