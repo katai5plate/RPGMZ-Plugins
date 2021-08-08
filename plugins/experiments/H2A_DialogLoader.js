@@ -40,13 +40,13 @@
  * 3. コマンドエディタでダイアログスクリプトを実行したいタイミングでプラグインコマンド「実行」を挿入
  *
  * ・ダイアログスクリプトの書き方
- * 準備中...
+ * https://github.com/katai5plate/RPGMZ-Plugins/blob/master/plugins/docs/H2A_DialogLoader.md
  *
  * Copyright (c) 2021 Had2Apps
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.2.1
- * プラグインバージョン: v0.9.0
+ * プラグインバージョン: v0.9.1
  */
 /*
 開発メモ:
@@ -65,11 +65,11 @@ source -> midCode -> commandList
         choicePosition: 2,
         choiceDefault: -1,
         wrapLength: 60,
-        defined: {},
-        bgmDefault: { name: "", volume: 100, pitch: 100, pan: 0 },
-        bgsDefault: { name: "", volume: 100, pitch: 100, pan: 0 },
-        meDefault: { name: "", volume: 100, pitch: 100, pan: 0 },
-        seDefault: { name: "", volume: 100, pitch: 100, pan: 0 },
+        _defined: {},
+        bgmDefault: { volume: 100, pitch: 100, pan: 0 },
+        bgsDefault: { volume: 100, pitch: 100, pan: 0 },
+        meDefault: { volume: 100, pitch: 100, pan: 0 },
+        seDefault: { volume: 100, pitch: 100, pan: 0 },
       };
       this.config = this.initialConfig;
     }
@@ -167,8 +167,8 @@ source -> midCode -> commandList
         DEF: () => {
           const [, defineName, content] = arg.match(/^(\S+) (.*?)$/);
           $gameDialog.setConfig({
-            defined: {
-              ...$gameDialog.config.defined,
+            _defined: {
+              ...$gameDialog.config._defined,
               [defineName]: content,
             },
           });
@@ -176,10 +176,10 @@ source -> midCode -> commandList
         },
         /** マクロを呼ぶ */
         CALL: () => {
-          if (!$gameDialog.config.defined[arg])
+          if (!$gameDialog.config._defined[arg])
             throw new Error("Undefined: " + arg);
           return this.sourceToCommandList(
-            $gameDialog.config.defined[arg],
+            $gameDialog.config._defined[arg],
             false
           );
         },
