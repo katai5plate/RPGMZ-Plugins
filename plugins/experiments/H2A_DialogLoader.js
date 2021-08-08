@@ -39,14 +39,14 @@
  * 2. dialogs フォルダにダイアログスクリプトが書かれたテキストファイルを置く
  * 3. コマンドエディタでダイアログスクリプトを実行したいタイミングでプラグインコマンド「実行」を挿入
  *
- * ・ダイアログスクリプトの書き方
+ * ・より詳しい使い方とリファレンス
  * https://github.com/katai5plate/RPGMZ-Plugins/blob/master/plugins/docs/H2A_DialogLoader.md
  *
  * Copyright (c) 2021 Had2Apps
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.2.1
- * プラグインバージョン: v0.9.1
+ * プラグインバージョン: v0.9.2
  */
 /*
 開発メモ:
