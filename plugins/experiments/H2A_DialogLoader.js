@@ -4,6 +4,16 @@
  * @author Had2Apps
  * @url https://github.com/katai5plate/RPGMZ-Plugins
  *
+ * @param beforeEach
+ *   @text 事前実行
+ *   @desc 毎回事前に実行されるダイアログスクリプト
+ *   @type multiline_string
+ *
+ * @param defaultDefine
+ *   @text 初期マクロ
+ *   @desc 毎回事前に登録されるマクロをファイルから定義します。複数行に渡るマクロ処理を登録できる唯一の手段です。
+ *   @type struct<Define>[]
+ *
  * @command exec
  *   @text 実行
  *   @desc ダイアログスクリプトを開いて実行します。
@@ -46,7 +56,17 @@
  * This software is released under the MIT License.
  *
  * 動作確認済コアバージョン: v1.2.1
- * プラグインバージョン: v0.9.2
+ * プラグインバージョン: v1.0.0
+ */
+/*~struct~Define:
+ * @param name
+ * @text マクロ名
+ * @type string
+ *
+ * @param path
+ * @text ファイルパス
+ * @desc dialogs/ フォルダ内にあるダイアログスクリプトが書かれたテキストファイルのパスを入力(拡張子不要)
+ * @type string
  */
 /*
 開発メモ:
@@ -54,9 +74,10 @@ source -> midCode -> commandList
 */
 
 (() => {
+  const pluginName = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
   class Game_Dialog {
     constructor() {
-      this.isRunning = false;
+      this.loadingFiles = [];
       this.initialConfig = {
         face: ["", 0],
         name: "",
@@ -71,7 +92,37 @@ source -> midCode -> commandList
         meDefault: { volume: 100, pitch: 100, pan: 0 },
         seDefault: { volume: 100, pitch: 100, pan: 0 },
       };
+      JSON.parse(PluginManager.parameters(pluginName).defaultDefine)
+        .map(JSON.parse)
+        .forEach(({ name, path }) => {
+          this.open(path, (res) => {
+            this.config._defined = { ...this.config._defined, [name]: res };
+          });
+        });
       this.config = this.initialConfig;
+    }
+    open(path, onLoad) {
+      this.loadingFiles.push(path);
+      fetch(`/dialogs/${path}.txt`)
+        .then((x) => x.text())
+        .then((res) => {
+          console.log({ res });
+          onLoad(res);
+          this.loadingFiles = this.loadingFiles.reduce(
+            (p, c) => (c === path ? p : [...p, c]),
+            []
+          );
+        });
+    }
+    load(interpreter, path, resetConfig) {
+      console.log(interpreter);
+      this.open(path, (res) => {
+        interpreter._list = [
+          ...(interpreter._list || []).slice(0, interpreter._index + 1),
+          ...this.sourceToCommandList(res, resetConfig),
+          ...(interpreter._list || []).slice(interpreter._index + 1),
+        ];
+      });
     }
     /** 未登録のキーを登録できないようにチェック */
     validate(oldState, newState) {
@@ -291,6 +342,28 @@ source -> midCode -> commandList
             parameters: [arg],
           },
         ],
+        /** アクターに登録されてるキャラ名と顔グラに設定する */
+        ACTOR: () => {
+          let actor;
+          if (Number.isSafeInteger(Number(arg))) {
+            actor = $dataActors.slice(1).find((x) => x.id === Number(arg));
+          } else {
+            actor = $dataActors.slice(1).find((x) => x.name === arg);
+          }
+          console.log(Number.isSafeInteger(Number(arg)), { actor, arg });
+          $gameDialog.setConfig({
+            face: [actor.faceName, actor.faceIndex],
+            name: actor.name,
+          });
+          return [];
+        },
+        /** JS の返り値と一致するラベルに飛ぶ */
+        GOTO_IF: () => [
+          {
+            code: 355,
+            parameters: [`this.command119([${arg}])`],
+          },
+        ],
       }[name]();
     }
     /**
@@ -340,7 +413,9 @@ source -> midCode -> commandList
     /** ソースコードをコマンドリストに変換 */
     sourceToCommandList(source, resetConfig) {
       if (resetConfig) this.config = this.initialConfig;
-      const midCode = this.sourceToMidCode(source);
+      const midCode = this.sourceToMidCode(
+        `${PluginManager.parameters(pluginName).beforeEach || ""}\n\n${source}`
+      );
       // 中間コードをイベントコマンドに変換
       const list = this.midCodeToCommandList(midCode);
       console.log(
@@ -353,31 +428,18 @@ source -> midCode -> commandList
 
   Game_Interpreter.prototype.updateWait = function () {
     return (
-      this.updateWaitCount() || this.updateWaitMode() || $gameDialog.isRunning
+      this.updateWaitCount() ||
+      this.updateWaitMode() ||
+      $gameDialog.loadingFiles.length
     );
   };
-
-  const pluginName = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
 
   PluginManager.registerCommand(
     pluginName,
     "exec",
     function ({ path, resetConfig }) {
       const _resetConfig = resetConfig === "true";
-      $gameDialog.isRunning = true;
-      fetch(`/dialogs/${path}.txt`)
-        .then((x) => x.text())
-        .then((res) => {
-          this._list = [
-            ...this._list.slice(0, this._index + 1),
-            ...$gameDialog.sourceToCommandList(res, _resetConfig),
-            ...this._list.slice(this._index + 1),
-          ];
-          $gameDialog.isRunning = false;
-        })
-        .catch(() => {
-          throw new Error("DialogFile is not found: " + path);
-        });
+      $gameDialog.load(this, path, _resetConfig);
     }
   );
 
