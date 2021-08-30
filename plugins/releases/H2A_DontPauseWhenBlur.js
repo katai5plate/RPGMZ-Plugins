@@ -10,11 +10,13 @@
  * このプラグインでは、その挙動を無効にし、
  * フォーカスしていない時でもゲームを一時停止しないようにします。
  *
+ * v2.0.0 から、VSCode 拡張の Live Server に対応しました。
+ *
  * Copyright (c) 2020 Had2Apps
  * This plugin is released under the MIT License.
  *
- * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.5.1
+ * 動作確認済コアバージョン: v1.3.2
+ * プラグインバージョン: v2.0.0
  *
  * @param whenDebug
  * @text デバッグ時限定
@@ -28,10 +30,15 @@
     document.currentScript.src.match(/^.*\/(.*).js$/)[1]
   );
 
+  const isLiveServer = document.body.innerHTML.includes(
+    "<!-- Code injected by live-server -->"
+  );
+
   if (
     params.whenDebug === "false" ||
     (params.whenDebug === "true" &&
-      ["test", "btest", "etest"].some((x) => Utils.isOptionValid(x)))
+      (["test", "btest", "etest"].some((x) => Utils.isOptionValid(x)) ||
+        isLiveServer))
   )
     SceneManager.isGameActive = () => true;
 })();
