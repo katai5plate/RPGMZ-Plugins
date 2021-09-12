@@ -45,8 +45,8 @@
  * Copyright (c) 2020 Had2Apps
  * This software is released under the MIT License.
  *
- * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v1.2.2
+ * 動作確認済コアバージョン: v1.3.2
+ * プラグインバージョン: v2.0.0
  *
  * @param mode
  * @text モード
@@ -147,10 +147,10 @@
     }
   };
 
-  Scene_Boot.prototype.start = new Proxy(Scene_Boot.prototype.start, {
-    apply(target, that, args) {
-      target.apply(that, args);
-      return skipTitle(mode);
-    },
-  });
+  Scene_Boot = class extends Scene_Boot {
+    start() {
+      super.start(arguments);
+      skipTitle(mode);
+    }
+  };
 })();

@@ -24,8 +24,8 @@
  * Copyright (c) 2020 Had2Apps
  * This software is released under the MIT License.
  *
- * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v2.0.0
+ * 動作確認済コアバージョン: v1.3.2
+ * プラグインバージョン: v3.0.0
  *
  * @param autoSaveMode
  * @text オートセーブ設定
@@ -58,11 +58,8 @@
  */
 (() => {
   const pluginName = document.currentScript.src.match(/^.*\/(.*).js$/)[1];
-  const {
-    autoSaveMode,
-    enableAutoSaveAfterBattle,
-    disableAutoSaveFlag,
-  } = PluginManager.parameters(pluginName);
+  const { autoSaveMode, enableAutoSaveAfterBattle, disableAutoSaveFlag } =
+    PluginManager.parameters(pluginName);
 
   let prevMapId = 0;
 
@@ -82,7 +79,8 @@
         DataManager.loadMapData($gamePlayer.newMapId());
         this.onTransfer();
       }
-    } else if (!$dataMap || $dataMap.id !== $gameMap.mapId()) {
+    }
+    if (!$dataMap || $dataMap.id !== $gameMap.mapId()) {
       DataManager.loadMapData($gameMap.mapId());
     }
   };
@@ -140,17 +138,14 @@
     return false;
   };
 
-  const proxyShouldAutosave = (origin, mode) =>
-    new Proxy(origin, {
-      apply: (target, that, args) =>
-        shouldAutosave(target.apply(that, args), mode),
-    });
-  Scene_Map.prototype.shouldAutosave = proxyShouldAutosave(
-    Scene_Map.prototype.shouldAutosave,
-    "transfer"
-  );
-  Scene_Battle.prototype.shouldAutosave = proxyShouldAutosave(
-    Scene_Battle.prototype.shouldAutosave,
-    "battle"
-  );
+  Scene_Map = class extends Scene_Map {
+    shouldAutosave() {
+      return shouldAutosave(super.shouldAutosave(...arguments), "transfer");
+    }
+  };
+  Scene_Battle = class extends Scene_Battle {
+    shouldAutosave() {
+      return shouldAutosave(super.shouldAutosave(...arguments), "battle");
+    }
+  };
 })();

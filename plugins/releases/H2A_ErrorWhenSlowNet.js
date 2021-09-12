@@ -22,8 +22,8 @@
  * Copyright (c) 2020 Had2Apps
  * This software is released under the MIT License.
  *
- * 動作確認済コアバージョン: v1.0.0
- * プラグインバージョン: v2.0.1
+ * 動作確認済コアバージョン: v1.3.2
+ * プラグインバージョン: v3.0.0
  *
  * @param timeout
  * @text タイムアウト
@@ -100,9 +100,8 @@
       this._isFailed = true;
       // エラー表示
       Graphics.printError("Network Speed Error", "");
-      Graphics._errorPrinter.querySelector(
-        "#errorMessage"
-      ).innerText = this._message;
+      Graphics._errorPrinter.querySelector("#errorMessage").innerText =
+        this._message;
       // シーンの停止
       SceneManager.stop();
       AudioManager.stopAll();
@@ -120,32 +119,35 @@
     if (id) $gameVariables.setValue(Number(id), errorWhenSlowNet._initLoadTime);
   });
 
-  // タイトル画面に遷移したとき
-  Scene_Boot.prototype.start = new Proxy(Scene_Boot.prototype.start, {
-    apply(target, that, args) {
-      errorWhenSlowNet.onTitle();
-      return target.apply(that, args);
-    },
-  });
-
   /** 関数を実行する直前に回線エラーが発生していたなら実行しない */
-  const preApply = (target, that, args) => {
+  const preApply = (apply, that, args) => {
     if (errorWhenSlowNet._isFailed) return;
-    return target.apply(that, args);
+    return apply(that, args);
   };
 
-  // PIXI を開始するまでに回線エラーがあったらゲームを開始しない
-  Graphics._createPixiApp = new Proxy(Graphics._createPixiApp, {
-    apply: preApply,
-  });
+  // タイトル画面に遷移したとき
+  Scene_Boot = class extends Scene_Boot {
+    start(...args) {
+      errorWhenSlowNet.onTitle();
+      return super.start(...args);
+    }
+  };
 
   // 回線エラーがあったら重複して表示されないようにする
-  SceneManager.initGraphics = new Proxy(SceneManager.initGraphics, {
-    apply: preApply,
-  });
+  SceneManager = class extends SceneManager {
+    initGraphics() {
+      return preApply(super.initGraphics, this, arguments);
+    }
+  };
 
-  // 回線エラーがあったら通常のスピナー消去を行わないようにする
-  Graphics.endLoading = new Proxy(Graphics.endLoading, {
-    apply: preApply,
-  });
+  Graphics = class extends Graphics {
+    // PIXI を開始するまでに回線エラーがあったらゲームを開始しない
+    _createPixiApp() {
+      return preApply(super._createPixiApp, this, arguments);
+    }
+    // 回線エラーがあったら通常のスピナー消去を行わないようにする
+    endLoading() {
+      return preApply(super.endLoading, this, arguments);
+    }
+  };
 })();

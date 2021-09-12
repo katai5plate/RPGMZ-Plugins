@@ -13,14 +13,14 @@
  * Copyright (c) 2021 Had2Apps
  * This software is released under the MIT License.
  *
- * 動作確認済コアバージョン: v1.1.1
- * プラグインバージョン: v1.1.1
+ * 動作確認済コアバージョン: v1.3.2
+ * プラグインバージョン: v2.0.0
  *
  */
 (() => {
-  window.Error = new Proxy(Error, {
-    construct(target, args) {
-      const [errorMessage, ...rest] = args;
+  window.Error = class extends Error {
+    constructor() {
+      const [errorMessage, ...rest] = arguments;
       const errorPattern = [
         {
           regex: /^This is a static class$/,
@@ -77,13 +77,13 @@
           after: "セーブデータがありません。",
         },
       ].find(({ regex }) => regex.test(errorMessage));
-      if (!errorPattern) return new target(...args);
+      if (!errorPattern) return super(...arguments);
       const { regex, after } = errorPattern;
       const translatedErrorMessage = after.replace(
         "??",
         errorMessage.match(regex)[1]
       );
-      return new target(translatedErrorMessage, ...rest);
-    },
-  });
+      return super(translatedErrorMessage, ...rest);
+    }
+  };
 })();
